@@ -2,30 +2,36 @@ import networkx as nx
 import matplotlib.pylab as plt
 
 
-def draw_pic(graph):
-    global edge_color_map
+def draw_pic(graph, color_map):
     edge = []  # store the edge has been add to G
+    width=[]
     G = nx.Graph()
-    target_edge = []  # store the edge need to be color red
+    target_edges = []  # store the edge need to be color red
 
     for node in graph:  # add node
         G.add_node(node)
 
     for index, node in enumerate(shortest_path_pic):  # pick the edge need to color red into target_edge
         if index < len(shortest_path_pic) - 1:
-            target_edge.append([node, shortest_path_pic[index + 1]])
+            target_edges.append([node, shortest_path_pic[index + 1]])
+            target_edges.append([shortest_path_pic[index + 1], node])
 
-    for outterNode in graph.items():
-        for innerNode in outterNode[1].items():
-            if [innerNode[0], outterNode[0]] not in edge:  # (a,b)in, then (b,a) should not in
-                edge.append([outterNode[0], innerNode[0]])
-                G.add_edge(outterNode[0], innerNode[0], weight=innerNode[1])
-            if [outterNode[0], innerNode[0]] in edge:
+    for outerNode in graph.items():
+
+        for innerNode in outerNode[1].items():
+
+            if [innerNode[0], outerNode[0]] not in edge:
+                edge.append([outerNode[0], innerNode[0]])
+                G.add_edge(outerNode[0], innerNode[0], length=innerNode[1])
+                width.append(innerNode[1]/150)
                 edge_color_map.append('black')
-            elif [outterNode[0], innerNode[0]] in target_edge:
-                edge_color_map.pop()
-                edge_color_map.append('r')
-    nx.draw(G, with_labels=True, edge_color=edge_color_map)
+                for target_edge in target_edges:
+                    if [outerNode[0], innerNode[0]] == target_edge:
+                        edge_color_map.pop()
+                        edge_color_map.append('red')
+    pos = nx.spring_layout(G)
+    nx.draw(G, pos, with_labels=True, edge_color=edge_color_map,width=width)
+
     plt.show()
 
 
@@ -72,11 +78,11 @@ def dijkstra(graph, src, dest, visited=[], distances={}, predecessors={}):
 if __name__ == "__main__":
     shortest_path_pic = []  # store shortest path
     edge_color_map = []  # store color
-    graph = {'s': {'a': 100, 'b': 1444},
-             'a': {'s': 333, 'b': 444, 'c': 118},
-             'b': {'s': 422, 'a': 233, 'd': 222},
-             'c': {'a': 22, 'd': 722, 't': 444},
-             'd': {'b': 11, 'c': 111, 't': 555},
-             't': {'c': 313, 'd': 115}}
-    dijkstra(graph, 's', 't')
-    draw_pic(graph)
+    graph = {'a': {'b': 100, 'c': 200},
+             'b': {'a': 100, 'c': 300, 'd': 500},
+             'c': {'a': 200, 'b': 300, 'e': 600},
+             'd': {'b': 500, 'e': 400, 'f': 200},
+             'e': {'c': 1000, 'd': 400, 'f': 100},
+             'f': {'d': 200, 'e': 100}}
+    dijkstra(graph, 'a', 'f')
+    draw_pic(graph, edge_color_map)
